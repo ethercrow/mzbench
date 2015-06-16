@@ -1,0 +1,30 @@
+
+dependencies:
+ pre:
+  - echo "deb http://packages.erlang-solutions.com/ubuntu precise contrib" | sudo tee -a /etc/apt/sources.list.d/erlang.list
+  - wget http://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc
+  - sudo apt-key add erlang_solutions.asc
+  - sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/erlang.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+  - sudo apt-get install --no-install-recommends erlang
+  - sudo find -L /usr/lib/erlang/man -type l -exec rm {} \+
+
+test:
+ override:
+  - ./circleci/prepare_env.sh
+  - sudo apt-get install nmap
+  - ssh node1 'sudo apt-get install nmap'
+  - ssh node2 'sudo apt-get install nmap'
+  - ssh node3 'sudo apt-get install nmap'
+  - nmap node1
+  - nmap node2
+  - nmap node3
+  - ssh node1 'nmap node1'
+  - ssh node1 'nmap node2'
+  - ssh node1 'nmap node3'
+  - sudo pip install -r requirements.txt
+  - ./bin/mz-bench install_server
+  - echo '[{mz_bench_api, [{mzbench_git, "git://github.com/ethercrow/mzbench"}]}].' | sudo tee /mz/mz_bench_api/mz_bench_server.config
+  - ./bin/mz-bench start_server
+  - ./bin/mz-bench start --nodes=node1,node2,node3 --node_commit=circleci examples/round_robin.erl
+  - ./bin/mz-bench log 0
+  - for l in /mz/mz_bench_api/log/*; do echo $l && cat $l; done;

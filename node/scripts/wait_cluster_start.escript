@@ -18,14 +18,18 @@ main([TimeoutStr | NodesStr]) ->
     Nodes == [] andalso bad_arg("host list", "(empty)"),
     Hostnames = [lists:last(string:tokens(atom_to_list(Node), "@")) || Node <- Nodes],
 
+    io:format("Nodes: ~p~n", [Nodes]),
+
     timer:apply_after(Timeout, ?MODULE, stop, [self(), timeout]),
 
+    io:format("Performing init_net_kernel()~n"),
     init_net_kernel(),
 
     ok = ensure_hostnames_are_resolvable(Hostnames),
     ok = ensure_hostnames_are_reachable_from_each_other(Hostnames),
     ok = is_nodes_ready(Nodes),
 
+    io:format("Connecting nodes~n"),
     connect_nodes(Nodes);
 
 main(_) ->
@@ -58,6 +62,7 @@ is_nodes_ready([]) -> ok;
 is_nodes_ready(Nodes) ->
     Refs = lists:map(fun spawn_is_ready/1, Nodes),
     Answers = lists:map(fun receive_answer/1, Refs),
+    io:format("Answers: ~p~n", [Answers]),
     BadAnswers = lists:filter(fun (A) -> not element(2, A) end, Answers),
     {NewNodes, _} = lists:unzip(BadAnswers),
     timer:sleep(1000),
@@ -95,10 +100,16 @@ is_node_ready(Node) ->
         case net_kernel:hidden_connect_node(Node) of
             true  ->
                 case rpc:call(Node, mzb_bench_sup, is_ready, []) of
-                    {badrpc, Reason} -> false;
-                    Reply -> Reply
+                    {badrpc, Reason} ->
+                        io:format("Got badrpc from node ~p: ~p~n", [Node, Reason]),
+                        false;
+                    Reply ->
+                        io:format("Got reply from node ~p: ~p~n", [Node, Reply]),
+                        Reply
                 end;
-            false -> false
+            false ->
+                io:format("net_kernel:hidden_connect_node(~p) failed~n", [Node]),
+                false
         end
     catch
         _:E ->
