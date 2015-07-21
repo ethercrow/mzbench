@@ -10,9 +10,9 @@ script_metrics(Pools, Nodes) ->
     Metrics ++ SystemLoadMetrics ++ [{"metric_merging_time", gauge}].
 
 pool_metrics(Pool) ->
-    #operation{name = pool, args = [PoolOpts, _Script]} = Pool,
+    #operation{name = pool, args = [PoolOpts, Script]} = Pool,
     {Provider, Worker} = mzbl_script:extract_worker(PoolOpts),
-    Provider:metrics(Worker).
+    Provider:metrics(Worker, Script).
 
 metrics(Path, EnvFromClient) ->
     Script = mzbl_script:read(Path, EnvFromClient),

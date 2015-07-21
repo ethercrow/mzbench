@@ -4,7 +4,7 @@
     load/1,
     init/1,
     apply/4,
-    metrics/1,
+    metrics/2,
     terminate/2,
     validate/1,
     validate_function/3]).
@@ -49,7 +49,13 @@ apply_if_exists(M, F, A) ->
         false -> {error, not_exists}
     end.
 
-metrics(Module) -> Module:metrics().
+metrics(Module, Script) ->
+    try
+        Module:metrics(Script)
+    catch error:undef ->
+        Module:metrics()
+    end.
+
 
 %% backported from R17
 
