@@ -4,7 +4,7 @@
     init/1,
     load/1,
     apply/4,
-    metrics/1,
+    metrics/2,
     terminate/2,
     validate/1,
     validate_function/3
@@ -80,8 +80,8 @@ apply(F, Args, LuaWithUserCode, _Meta) ->
 terminate(Res, State) ->
     catch luerl:call_function([terminate], [Res], State).
 
--spec metrics(worker_name()) -> [{string(), gauge | histogram | counter}].
-metrics(WorkerName) ->
+-spec metrics(worker_name(), abstract_expr()) -> [{string(), gauge | histogram | counter}].
+metrics(WorkerName, _Script) ->
     lager:info("trying to get metrics from module ~p", [WorkerName]),
     SearchPaths = search_paths(WorkerName),
     {ok, Filename} = search_worker_file(WorkerName, SearchPaths),
