@@ -39,6 +39,15 @@ def worker_from_git_test():
         env={'worker_branch': worker_commit,
             'mzbench_repo': mzbench_repo})
 
+def exec_worker_metrics_test():
+    worker_commit = os.environ.get('NODE_COMMIT', 'master')
+    mzbench_repo = os.environ.get('MZBENCH_REPO', 'https://github.com/machinezone/mzbench')
+    run_successful_bench(
+        scripts_dir + 'exec_worker_metrics.erl',
+        env={'worker_branch': worker_commit,
+            'mzbench_repo': mzbench_repo},
+        expected_log_message_regex=r'some.external.metric = 900')
+
 def env_test():
     run_successful_bench(scripts_dir + 'env.erl', env={
         'jozin': 'bazin',
