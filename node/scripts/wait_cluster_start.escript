@@ -3,6 +3,8 @@
 
 -export([stop/2]).
 
+-include_lib("kernel/include/inet.hrl").
+
 main([TimeoutStr | NodesStr]) ->
     Timeout =
         try erlang:list_to_integer(TimeoutStr) of
