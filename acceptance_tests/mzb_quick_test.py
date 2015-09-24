@@ -9,6 +9,7 @@ os.chdir(dirname)
 sys.path.append("../lib")
 
 from mzb_test_utils import run_successful_bench, start_mzbench_server
+from util import time_tracked
 
 mzbench_dir = dirname + '/../'
 scripts_dir = mzbench_dir + 'acceptance_tests/scripts/'
@@ -21,7 +22,7 @@ def correct_test():
 
 def main():
     with start_mzbench_server():
-        if not nose.run(defaultTest=__name__):
+        if not time_tracked('nose ' + __file__)(nose.run)(defaultTest=__name__):
             raise RuntimeError("some tests failed")
 
 if __name__ == '__main__':

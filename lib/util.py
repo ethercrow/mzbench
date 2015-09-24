@@ -63,10 +63,11 @@ def check_output(*popenargs, **kwargs):
 def sudo_cmd(command):
     return cmd('sudo {0}'.format(command))
 
+
 def cmd(command):
     print 'Executing', command
     args = shlex.split(command)
-    return check_output(args)
+    return time_tracked("cmd " + command)(check_output)(args)
 
 def remote_cmd(host, command, ssh_opts = ""):
     ssh_cmd = "ssh -A -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=false {0} {1} \"source /etc/profile; {2}\"".format(ssh_opts, host, command)
@@ -74,6 +75,33 @@ def remote_cmd(host, command, ssh_opts = ""):
 
 def mangle_experiment_name(name):
     return name.replace(' ', '_').replace(',', '_')
+
+
+def time_tracked(tag):
+    def deco(f):
+        f1 = f
+        def wrapped(*args, **kwargs):
+            start_time = time.time()
+            try:
+                result = f1(*args, **kwargs)
+                if 'TRACK_CMD' in os.environ:
+                    end_time = time.time()
+                    with open('/tmp/tracking_cmd.log', 'a') as f:
+                        f.write('{0}\t{1}\tsuccess\t{2}\n'.format(start_time, end_time, tag))
+                return result
+            except:
+                if 'TRACK_CMD' in os.environ:
+                    end_time = time.time()
+                    with open('/tmp/tracking_cmd.log', 'a') as f:
+                        f.write('{0}\t{1}\tfail\t{2}\n'.format(start_time, end_time, tag))
+                raise
+        return wrapped
+    return deco
+
+
+@time_tracked('sleep')
+def sleep(amount):
+    time.sleep(amount)
 
 
 @contextmanager

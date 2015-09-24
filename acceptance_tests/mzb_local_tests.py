@@ -10,7 +10,7 @@ dirname = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dirname)
 sys.path.append("../lib")
 
-from util import cmd
+from util import cmd, time_tracked
 
 mzbench_dir = dirname + '/../'
 scripts_dir = mzbench_dir + 'acceptance_tests/scripts/'
@@ -53,7 +53,7 @@ def devtool_list_templates_test():
         assert sorted(templates) == sorted(got_templates)
 
 def main():
-    if not nose.run(defaultTest=__name__):
+    if not time_tracked('nose ' + __file__)(nose.run)(defaultTest=__name__):
         raise RuntimeError("some tests failed")
 
 if __name__ == '__main__':

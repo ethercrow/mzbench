@@ -11,7 +11,6 @@ dirname = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dirname)
 sys.path.append("../lib")
 
-
 _multiprocess_shared_ = True
 
 from mzb_test_utils import start_mzbench_server

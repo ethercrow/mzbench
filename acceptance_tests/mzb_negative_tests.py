@@ -60,7 +60,7 @@ def always_assertions_fail_test():
 
 def main():
     with start_mzbench_server():
-        if not nose.run(defaultTest=__name__):
+        if not util.time_tracked('nose ' + __file__)(nose.run)(defaultTest=__name__):
             raise RuntimeError("some tests failed")
 
 if __name__ == '__main__':

@@ -4,7 +4,6 @@ import re
 import sys
 import shlex
 import subprocess
-import time
 import json
 from operator import xor
 from contextlib import contextmanager
@@ -13,7 +12,7 @@ dirname = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dirname)
 sys.path.append("../lib")
 
-from util import cmd
+from util import cmd, sleep, time_tracked
 
 mzbench_dir = dirname + '/../'
 scripts_dir = mzbench_dir + 'acceptance_tests/scripts/'
@@ -36,7 +35,7 @@ def start_mzbench_server():
 
     cmd('{0} start_server --config {1}/test_server.config'.format(mzbench_script, dirname))
     try:
-        time.sleep(3) # give server some time to start
+        sleep(3) # give server some time to start
         yield
     except:
         print ''
@@ -55,7 +54,7 @@ def start_mzbench_server():
 
 def run_successful_bench(name, nodes=None, workers_per_node=None, env={}, 
         email=None, exclusive_node_usage=False, expected_log_message_regex=None):
-    return run_bench(name, should_fail=False,
+    return time_tracked('run_successful_bench ' + name)(run_bench)(name, should_fail=False,
         nodes=nodes, workers_per_node=workers_per_node, env=env, email=email,
         exclusive_node_usage=exclusive_node_usage,
         expected_log_message_regex=expected_log_message_regex)
@@ -63,7 +62,7 @@ def run_successful_bench(name, nodes=None, workers_per_node=None, env={},
 
 def run_failing_bench(name, nodes=None, workers_per_node=None, env={}, 
         email=None, exclusive_node_usage=False, expected_log_message_regex=None):
-    return run_bench(name, should_fail=True,
+    return time_tracked('run_failing_bench ' + name)(run_bench)(name, should_fail=True,
         nodes=nodes, workers_per_node=workers_per_node, env=env,
         exclusive_node_usage=exclusive_node_usage,
         expected_log_message_regex=expected_log_message_regex)
@@ -133,7 +132,7 @@ def run_bench(name=None, worker_package_with_default_scenario=None, nodes=None,
         print 'Attempt #{0}'.format(attempt)
 
         try:
-            (bench_id, success) = run()
+            (bench_id, success) = time_tracked('Run #' + str(attempt))(run)()
         except Exception as e:
             print "Unexpected error: {0}".format(e)
             bench_id, success = (None, False)

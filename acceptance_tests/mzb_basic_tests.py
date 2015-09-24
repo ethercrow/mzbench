@@ -3,7 +3,6 @@
 import os
 import sys
 import subprocess
-import time
 import json
 import nose
 import re
@@ -12,7 +11,7 @@ dirname = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dirname)
 sys.path.append("../lib")
 
-from util import cmd
+from util import cmd, sleep, time_tracked
 
 from mzb_test_utils import run_successful_bench, restart_bench, start_mzbench_server
 
@@ -125,7 +124,7 @@ def data_endpoint_test():
     print 'JSON data collector stderr'
     print json_err
 
-    time.sleep(3)
+    sleep(3)
 
     csv_data_ret_code = csv_data_process.poll()
     json_data_ret_code = json_data_process.poll()
@@ -184,7 +183,7 @@ def log_compression_test():
 
 def main():
     with start_mzbench_server():
-        if not nose.run(defaultTest=__name__):
+        if not time_tracked('nose ' + __file__)(nose.run)(defaultTest=__name__):
             raise RuntimeError("some tests failed")
 
 if __name__ == '__main__':
