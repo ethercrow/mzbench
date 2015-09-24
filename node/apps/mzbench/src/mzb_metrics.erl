@@ -68,8 +68,7 @@ get_value(Metric) ->
     end.
 
 final_trigger() ->
-    gen_server:call(?MODULE, final_trigger, infinity),
-    timer:sleep(?INTERVAL). % let reporters report last metric data
+    gen_server:call(?MODULE, final_trigger, infinity).
 
 -spec get_failed_asserts() -> [term()].
 get_failed_asserts() ->
