@@ -102,7 +102,9 @@ init([MetricsPrefix, Env, MetricGroups, Nodes, DirPid]) ->
         }}.
 
 handle_call(final_trigger, _From, State) ->
-    {reply, ok, tick(State#s{active = false, stop_time = os:timestamp()})};
+    NewState = tick(State#s{active = false, stop_time = os:timestamp()}),
+    exometer_report:trigger_interval(mzb_exometer_report_apiserver, ?INTERVALNAME),
+    {reply, ok, NewState};
 
 handle_call(get_failed_asserts, _From, #s{asserts = Asserts} = State) ->
     {reply, mzb_asserts:get_failed(_Finished = true, ?ASSERT_ACCURACY, Asserts), State};
