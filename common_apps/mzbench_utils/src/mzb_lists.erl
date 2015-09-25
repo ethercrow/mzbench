@@ -26,6 +26,7 @@ taken(Ps, N, Len, L) ->
     {K1, V1} = lists:nth(crypto:rand_uniform(1, Len), Ps),
     taken(proplists:delete(K1, Ps), N-1, Len-1, [V1 | L]).
 
+pmap(Fun, [X]) -> [Fun(X)];
 pmap(Fun, List) ->
     Self = self(),
     Refs = lists:map(fun (Element) ->
