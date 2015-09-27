@@ -4,6 +4,11 @@ otp_release:
  - 18.0
  - 17.0
 
+addons:
+  apt:
+    packages:
+      - parallel
+
 env:
  - TASK=lint
  - TASK=dialyzer
@@ -21,27 +26,31 @@ script:
  - ./bin/rebar3 update
  - export PROJECTS="node server common_apps/mzbench_language common_apps/mzbench_utils";
  - case "$TASK" in
-     lint) sudo pip install pyflakes && ./bin/lint.py . ;;
-     validate-examples) sudo pip install -r requirements.txt && make -C examples check;;
-     error-messages) sudo pip install -r requirements.txt && make -C acceptance_tests/invalid_scripts check;;
-     http-worker-tests) sudo pip install -r requirements.txt &&
-                       export NODE_COMMIT=`git rev-parse HEAD` &&
+     lint) sudo pip install pyflakes ;;
+     development-with-rsync) sudo pip install -r requirements.txt ;;
+     acceptance-local-tests|validate-examples) parallel -j0 --arg-sep ,, ,, "sudo pip install -r requirements.txt" "make -C node generate" ;;
+     unit-tests|dialyzer) parallel -j0 --arg-sep ,, ,, "make -C" ,, $PROJECTS ;;
+     *) sudo apt-get install -y parallel && parallel -j0 --arg-sep ,, ,, "sudo pip install -r requirements.txt" "make -C node generate" "make -C server generate" ;;
+   esac
+ - case "$TASK" in
+     lint) ./bin/lint.py . ;;
+     validate-examples) make -C examples check;;
+     error-messages) make -C acceptance_tests/invalid_scripts check;;
+     http-worker-tests) export NODE_COMMIT=`git rev-parse HEAD` &&
                        export MZBENCH_REPO=`pwd` &&
                        cd workers/http &&
                        make && make check-local;;
-     acceptance-*-tests) sudo pip install -r requirements.txt &&
-                       sudo pip install -r acceptance_tests/requirements.txt &&
+     acceptance-*-tests) sudo pip install -r acceptance_tests/requirements.txt &&
                        export NODE_COMMIT=`git rev-parse HEAD` &&
                        export MZBENCH_REPO=`pwd` &&
                        cd acceptance_tests &&
                        make ${TASK/acceptance-/};;
-     development-with-rsync) sudo pip install -r requirements.txt &&
-                       sudo pip install -r acceptance_tests/requirements.txt &&
+     development-with-rsync) sudo pip install -r acceptance_tests/requirements.txt &&
                        export MZBENCH_RSYNC=$PWD/ &&
                        rm node/Makefile &&
                        make -C acceptance_tests quick-test >/dev/null; [ $? -ne 0 ] &&
                        git checkout -- node/Makefile &&
                        make -C acceptance_tests quick-test;;
-     unit-tests) for prj in $(echo $PROJECTS); do make -C $prj test-unit || exit 1; done;;
-     dialyzer) for prj in $(echo $PROJECTS); do make -C $prj dialyzer.log || exit 1; done;;
+     unit-tests) parallel -j0 --arg-sep ,, ,, "make -C" ,, $(echo $PROJECTS) ,, test-unit ;;
+     dialyzer) for prj in $PROJECTS; do make -C $prj dialyzer.log || exit 1; done;;
    esac
