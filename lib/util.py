@@ -1,10 +1,12 @@
 from contextlib import contextmanager
 import sys
 import os
-import traceback
+import re
 import shlex
 import subprocess
 import time
+import traceback
+import unicodedata
 
 def slurp(path):
     with open(path, 'r') as f:
@@ -42,7 +44,7 @@ def check_output(*popenargs, **kwargs):
     Backported from Python 2.7 as it's implemented as pure python on stdlib.
 
     >>> check_output(['/usr/bin/python', '--version'])
-    Python 2.6.2
+    'Python 2.6.2\n'
     """
     process = subprocess.Popen(
             stdout=subprocess.PIPE,
@@ -104,3 +106,26 @@ def multiline_strip(s):
     '''Returns a copy of s with empty lines and
     leading and trailing spaces removed'''
     '\n'.join((x.strip() for x in s.split('\n') if x))
+
+def slugify(s):
+    '''
+    >>> slugify(u'abc123')
+    u'abc123'
+    >>> slugify('abc123')
+    'abc123'
+    >>> slugify(u'https://foo.bar/baz quux')
+    u'https-foo-bar-baz-quux'
+    >>> slugify('https://foo.bar/baz quux')
+    'https-foo-bar-baz-quux'
+    '''
+
+    if isinstance(s, unicode):
+        s = unicodedata.normalize('NFKD', s)
+    s = s.lower().strip()
+    s = re.sub(r'[^a-z0-9]+', '-', s)
+    s = re.sub(r'[-\s]+', '-', s)
+    return s
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

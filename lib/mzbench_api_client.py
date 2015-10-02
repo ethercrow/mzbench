@@ -7,6 +7,8 @@ import sys
 import requests
 import multipart
 
+import util
+
 class MZBenchAPIException(Exception):
     pass
 
@@ -79,18 +81,17 @@ def start(host, script_file, script_content,
         script_dir = os.path.dirname(script_file)
         filename = os.path.join(script_dir, inc)
 
-        def get_file_content():
+        def make_include():
             if re.match(r'^https?://.*', inc):
                 resp = requests.get(inc)
                 resp.raise_for_status()
-                return resp.content
+                return {'filename': util.slugify(inc), 'content': resp.content}
 
             with open(filename) as fi:
-                return fi.read()
-        try:
-            files.append(
-                ('include', {'filename': inc, 'content': get_file_content()}))
+                return {'filename': inc, 'content': fi.read()}
 
+        try:
+            files.append(('include', make_include()))
         except requests.HTTPError as e:
             print "Warning: failed to get http resource '{0}': {1}".format(filename, e)
         except IOError:
