@@ -1,0 +1,6 @@
+[{<<"jiffy">>,
+  {git,"git://github.com/davisp/jiffy.git",
+       {ref,"137d3d94b6ee10001d761d412cbbe7f665680c98"}},
+  0},
+ {<<"mzbench_language">>,{rsync,"../common_apps/mzbench_language/"},0},
+ {<<"mzbench_utils">>,{rsync,"../common_apps/mzbench_utils/"},0}].
