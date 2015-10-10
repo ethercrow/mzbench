@@ -18,6 +18,7 @@ main([Script | Params]) ->
                     end, [],
                     ["../apps/*/ebin/",
                      "../../workers/*/ebin/",
+                     "../_checkouts/*/ebin/",
                      "../_build/default/deps/*/ebin/"]),
 
     BinDir = filename:dirname(escript:script_name()),

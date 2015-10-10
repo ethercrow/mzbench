@@ -82,7 +82,7 @@ $(RELEASE_BINARY): .make/compilation-up-to-date rel/files/sys.config rel/files/v
 	touch $(RELEASE_BINARY)
 
 .make/compilation-up-to-date: rebar.config $(SOURCES) .make/git-rev-$(GIT_HEAD) $(MZBENCH_COMMON_SOURCES)
-	test -d _checkouts || ../lib/create_rebar_checkouts.escript
+	test -d _checkouts || echo "Prefetching deps" && ../lib/create_rebar_checkouts.escript
 	$(REBAR) compile
 	make -C _build/default/deps/jiffy
 	mkdir -p .make && touch $@
