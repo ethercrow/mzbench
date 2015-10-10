@@ -37,12 +37,14 @@ check: test-unit dialyzer.log
 clean:
 	$(REBAR) clean
 	rm -rf _build
+	rm -rf _checkouts
 	rm -rf .make
 
 .PHONY: generate
 generate: $(RELEASE_BINARY)
 
 .make/compilation-up-to-date: rebar.config $(SOURCES) .make/git-rev-$(GIT_HEAD) $(MZBENCH_COMMON_SOURCES)
+	test -d _checkouts || ../lib/create_rebar_checkouts.escript
 	$(REBAR) compile
 
 	make -C _build/default/deps/jiffy # Until https://github.com/davisp/jiffy/issues/96 is resolved
