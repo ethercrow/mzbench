@@ -49,6 +49,10 @@ start_interpreter(Module) ->
 
     port_command(PythonPort, "import traceback\n"),
     port_command(PythonPort, "import mzbench\n"),
+    Reply = send_command(Interpreter, "__import__('~s')", [Module]),
+    lager:info("import ~p: ~p", [Module, Reply]),
+    PythonPath = send_command(Interpreter, "sys.path", []),
+    lager:info("python sys.path: ~p", [PythonPath]),
     port_command(PythonPort, mzb_string:format("import ~s\n", [Module])),
     Interpreter.
 
